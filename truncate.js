@@ -1,5 +1,4 @@
 (function () {
-
 	var utils = {
 		getInnerHeight: function (element) {
 			var innerHeight, properties, computedStyle;
@@ -7,7 +6,7 @@
 				computedStyle = window.getComputedStyle(element);
 				return parseInt(computedStyle.maxHeight, 10) || parseInt(computedStyle.height, 10);
 			}
-			innerHeight = element.offsetHeight,
+			innerHeight = element.offsetHeight;
 			properties = ['paddingTop', 'paddingBottom'];
 			for (var i = properties.length; i--;) {
 				innerHeight -= parseInt(element.currentStyle ? element.currentStyle[properties[i]] : element.style[properties[i]], 10 ) || 0;
@@ -47,7 +46,7 @@
 		},
 		addEventListener: function (element, eventName, fn) {
 			if (element.addEventListener) {
-				element.addEventListener(eventName, fn)
+				element.addEventListener(eventName, fn);
 			}
 			else if (element.attachEvent){
 				if (element['on' + eventName] !== undefined) {
@@ -56,15 +55,20 @@
 				else {
 					element[eventName] = 0;
 					element.attachEvent('onpropertychange', function (e) {
-			            if(e.propertyName  == eventName) {
-			                fn();
-			            }            
-			        });
-			    }
+						if(e.propertyName === eventName) {
+							fn();
+						}
+					});
+				}
 			}
 		},
 		removeEventListener: function(element, eventName, fn) {
-			element.removeEventListener ? element.removeEventListener(eventName, fn) : element.detachEvent('on' + eventName, fn);	
+			if(element.removeEventListener) {
+				element.removeEventListener(eventName, fn);
+			}
+			else {
+				element.detachEvent('on' + eventName, fn);
+			}
 		},
 		indexOf: function (value, arr) {
 			for (var i = arr.length; i--;) {
@@ -117,7 +121,6 @@
 		}
 	};
 
-	var	originalNode;
 
 	var isLessThanMaxHeight = function (innerElement, options) {
 		return innerElement.offsetHeight > options.maxHeight;
@@ -136,7 +139,7 @@
 
 
 	var truncateElement = function (nodeToTruncate, element, innerElement, options) {
-		if ( typeof nodeToTruncate == 'undefined' ) {
+		if ( typeof nodeToTruncate === 'undefined' ) {
 			return false;
 		}
 
@@ -151,7 +154,7 @@
 
 		while (startPos <= endPos) {
 			var m = Math.floor((startPos + endPos)/2);
-			if (m == midPos) {
+			if (m === midPos) {
 				break;
 			}
 			midPos = m;
@@ -202,14 +205,14 @@
 			clonedChildNodes = nodeToTruncate.cloneNode(true).childNodes,
 			clonedNode;
 
-		utils.emptyingElement(innerElement);
+		utils.emptyingElement(nodeToTruncate);
 
 		for ( var i = 0, length = clonedChildNodes.length; i < length; i++ ) {
 			if (isTruncated){
 				break;
 			}
-			clonedNode = clonedChildNodes[i];
-			if (typeof clonedNode == 'undefined') {
+			clonedNode = clonedChildNodes[i].cloneNode(true);
+			if (typeof clonedNode === 'undefined') {
 				continue;
 			}
 			nodeToTruncate.appendChild(clonedNode);
@@ -237,13 +240,13 @@
 				return false;
 			}
 
-			if (!elem.skypeDataId) {
-				elem.skypeDataId = internalData.counter++;
+			if (!elem.internalId) {
+				elem.internalId = internalData.counter++;
 			}
 
-			var cacheObj = internalData.cache[elem.skypeDataId];
+			var cacheObj = internalData.cache[elem.internalId];
 			if (!cacheObj) {
-				cacheObj = internalData.cache[elem.skypeDataId] = {};
+				cacheObj = internalData.cache[elem.internalId] = {};
 			}
 
 			if (value) {
@@ -251,7 +254,7 @@
 			}
 		},
 		get: function (elem, key){
-			return internalData.cache && internalData.cache[elem.skypeDataId] && internalData.cache[elem.skypeDataId][key];
+			return internalData.cache && internalData.cache[elem.internalId] && internalData.cache[elem.internalId][key];
 		}
 	};
 
@@ -261,17 +264,16 @@
 	var winResizeSupport = function (element, options) {
 		var windowWidth = document.documentElement.clientWidth,
 			windowHeight = document.documentElement.clientHeight,
-			resizeEvent = resizeEvents[element.skypeDataId];
+			resizeEvent = resizeEvents[element.internalId];
 
 		if (resizeEvent) {
 			utils.removeEventListener(window, 'resize', resizeEvent);
 		}
 
-		resizeEvent = resizeEvents[element.skypeDataId] = function() {
-			if (windowWidth !== document.documentElement.clientWidth || windowHeight != document.documentElement.clientHeight || !options.windowResizeFix ) {
-				windowWidth = document.documentElement.clientWidth,
+		resizeEvent = resizeEvents[element.internalId] = function() {
+			if (windowWidth !== document.documentElement.clientWidth || windowHeight !== document.documentElement.clientHeight || !options.windowResizeFix ) {
+				windowWidth = document.documentElement.clientWidth;
 				windowHeight = document.documentElement.clientHeight;
-
 				setTimeout(function() {
 					CustomEventHandler.dispatchEvent(element, 'update.tripledot');
 				}, 10);
@@ -282,14 +284,14 @@
 		utils.addEventListener(window, 'resize', resizeEvent);
 	};
 
-	var wireEvents = function (element, options) {
+	var wireEvents = function (originalNode, element, options) {
 
 		if (options.winResizeSupport) {
 			winResizeSupport(element, options);
 		}
 
 		CustomEventHandler.addListener(element, 'destroy.tripledot', function (e, c) {
-			var resizeEvent = resizeEvents[element.skypeDataId];
+			var resizeEvent = resizeEvents[element.internalId];
 			if (resizeEvent) {
 				utils.removeEventListener(window, 'resize', resizeEvent);
 			}
@@ -302,7 +304,7 @@
 				innerDivStyle = innerDiv.style,
 				truncatedContent;
 
-			options.maxHeight = typeof options.height == 'number' ? options.height : utils.getInnerHeight(element);
+			options.maxHeight = typeof options.height === 'number' ? options.height : utils.getInnerHeight(element);
 
 			innerDiv.className = "tripledot";
 			utils.emptyingElement(element);
@@ -315,8 +317,9 @@
 			innerDivStyle.padding = "0";
 			innerDivStyle.margin = "0";
 
+
 			if (isLessThanMaxHeight(innerDiv, options)) {
-				truncatedContent = truncateContent(innerDiv, element, innerDiv, options);
+				isContentTruncated = truncateContent(innerDiv, element, innerDiv, options);
 			}
 
 			utils.appendNodes(innerDiv, element);
@@ -324,10 +327,10 @@
 			element.removeChild(innerDiv);
 
 			if (options.callback && typeof options.callback === 'function') {
-				options.callback(element, truncatedContent, clonedChildNodes);
+				options.callback(element, isContentTruncated, clonedChildNodes);
 			}
 
-			return truncatedContent;
+			return isContentTruncated;
 		});
 	};
 
@@ -343,18 +346,12 @@
 	};
 
 	window.truncate = function (element, options) {
-
-		originalNode = element.cloneNode(true);
 		options = utils.extend(defaultOptions, options || {});
-
 		if (internalData.get(element, 'tripledot')) {
 			CustomEventHandler.dispatchEvent(element, 'destroy.tripledot');
 		}
-
 		internalData.set(element, 'tripledot', true);
-		wireEvents(element, options);
+		wireEvents(element.cloneNode(true), element, options);
 		CustomEventHandler.dispatchEvent(element, 'update.tripledot');
 	};
-
-
 })({});
