@@ -302,7 +302,7 @@
 				clonedChildNodes = clonedNode.childNodes,
 				innerDiv = document.createElement('div'),
 				innerDivStyle = innerDiv.style,
-				truncatedContent;
+				isContentTruncated;
 
 			options.maxHeight = typeof options.height === 'number' ? options.height : utils.getInnerHeight(element);
 
