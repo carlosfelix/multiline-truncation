@@ -189,7 +189,7 @@
 			{
 				nodeToTruncate = parentNode.previousSibling && parentNode.previousSibling.childNodes.length && parentNode.previousSibling.childNodes[parentNode.previousSibling.childNodes.length - 1];
 				if (nodeToTruncate) {
-					txt = appendTripleDot(getTextContent(nodeToTruncate), options);
+					txt = appendTripleDot(utils.getTextContent(nodeToTruncate), options);
 					utils.setTextContent(nodeToTruncate, txt);
 					parentNode.parentNode.removeChild(parentNode);
 					isTruncated = true;
